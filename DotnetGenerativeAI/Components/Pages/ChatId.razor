@@ -1,0 +1,150 @@
+﻿@page "/chat/{id}"
+@rendermode InteractiveServer
+@using DotnetGenerativeAI.Data
+@using DotnetGenerativeAI.Extensions
+@using DotnetGenerativeAI.Models
+@using DotnetGenerativeAI.Prompts
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.SemanticKernel.ChatCompletion
+@inject AppDbContext Context
+@inject IChatCompletionService ChatCompletionServiceFactory
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Chat</PageTitle>
+
+<h1>Chat</h1>
+
+<div class="chat-page">
+    <div class="chat-container">
+        @if (!string.IsNullOrEmpty(Summary))
+        {
+            <p>A conversa inicial é muito longa e foi resumida abaixo.</p>
+            <div class="chat-answer">
+                @Summary
+            </div>
+        }
+
+        @foreach (var item in History.Where(x => x.Role != AuthorRole.System))
+        {
+            <div class="chat-@(item.Role == AuthorRole.User ? "question" : "answer")">
+                @item.Content
+            </div>
+        }
+
+        @if (IsBusy)
+        {
+            <div class="chat-answer loading">
+                ...
+            </div>
+        }
+
+        <div @ref="_bottomMarker"></div>
+    </div>
+
+    <div class="chat-prompt">
+        <textarea type="text" cols="30" rown="3" @bind="Prompt" class="form-control" placeholder="Type your message here..." />
+        <button class="btn btn-primary" @onclick="OnSendAsync">Send</button>
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private ElementReference _bottomMarker;
+
+    private bool IsBusy { get; set; } = false;
+    private string? Prompt { get; set; }
+    private string? Summary { get; set; }
+    private ChatHistory History { get; set; } = [];
+    private ChatModel? _model = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsBusy = true;
+        History.AddSystemMessage(SystemPrompt.Default);
+
+        if(!string.IsNullOrEmpty(this.Id))
+            _model = Context.Chats.FirstOrDefault(x => x.Id == new Guid(this.Id));
+
+        if (_model is null)
+        {
+            var newId = Guid.NewGuid();
+            // this.Id = newId.ToString();
+            _model = new ChatModel { Id = newId, StartedAt = DateTime.UtcNow };
+            IsBusy = false;
+
+            return;
+        }
+
+        var messages = Context
+            .Messages
+            .Take(10)
+            .Where(x => x.ChatId == _model.Id)
+            .OrderBy(x => x.CreatedAt)
+            .ToList();
+        _model.Messages = messages;
+
+        //Sumariza
+        if (messages.Count > 5)
+        {
+            var context = string.Join(", ", messages.Select(x => x.Content));
+            var summary = await ChatCompletionServiceFactory.GetChatMessageContentAsync(context);
+            Summary = summary.Content ?? string.Empty;
+            History.AddMessage(AuthorRole.Assistant, Summary);
+        }
+
+        IsBusy = false;
+    }
+
+    private async Task OnSendAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Prompt))
+            return;
+
+        IsBusy = true;
+        await ScrollToBottomAsync();
+
+        if (Context.Entry(_model).State == EntityState.Detached)
+        {
+            // If it's detached, it's a new chat. Add it to the context.
+            await Context.Chats.AddAsync(_model);
+        }
+
+        var userMessage = new ChatMessageModel
+            {
+                Id = Guid.NewGuid(),
+                ChatModel = _model!,
+                Content = Prompt,
+                Role = AuthorRole.User.Map(),
+            };
+
+        await Context.Messages.AddAsync(userMessage);
+
+        History.AddUserMessage(Prompt);
+        await ScrollToBottomAsync();
+
+        var response = await ChatCompletionServiceFactory.GetChatMessageContentAsync(History);
+        History.Add(response);
+        Prompt = string.Empty;
+
+        var assistantMessage = new ChatMessageModel
+            {
+                Id = Guid.NewGuid(),
+                ChatModel = _model!,
+                Content = response.Content ?? string.Empty,
+                Role = AuthorRole.Assistant.Map(),
+        };
+        await Context.Messages.AddAsync(assistantMessage);
+
+        await Context.SaveChangesAsync();
+
+        IsBusy = false;
+        await ScrollToBottomAsync();
+    }
+
+    private async Task ScrollToBottomAsync()
+    {
+        await JsRuntime.InvokeVoidAsync("scrollIntoView", _bottomMarker);
+    }
+}
