@@ -7,7 +7,9 @@
 *.v2
 *.suo
 *.duo
-*.vs
+vs/
+bin/
+obj/
 
 # User-specific files
 *.rsuser
