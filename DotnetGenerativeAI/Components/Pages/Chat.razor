@@ -1,0 +1,53 @@
+﻿@page "/chat"
+@rendermode InteractiveServer
+@using DotnetGenerativeAI.Data
+@using DotnetGenerativeAI.Extensions
+@using DotnetGenerativeAI.Models
+@using Microsoft.SemanticKernel.ChatCompletion
+@inject AppDbContext Context
+@inject NavigationManager NavigationManager
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <div>
+        <p style="text-align: center">Como a IA pode te ajudar hoje?</p>
+        <input type="text" @bind="Prompt" disabled="@IsBusy">
+        <button @onclick="OnNewChatAsync" disabled="@IsBusy">INICIAR</button>
+    </div>
+</div>
+
+
+@code {
+
+    private string Prompt = string.Empty;
+    private bool IsBusy { get; set; } = false;
+
+    private async Task OnNewChatAsync()
+    {
+        IsBusy = true;
+        var chat = new ChatModel
+        {
+            Id = Guid.NewGuid(),
+            Title = Prompt,
+        };
+
+        var message = new ChatMessageModel
+        {
+            Id = Guid.NewGuid(),
+            ChatId = chat.Id,
+            Content = Prompt,
+            Role = AuthorRole.User.Map()
+        };
+
+        chat.Messages.Add(message);
+
+        await Context.Chats.AddAsync(chat);
+        await Context.Messages.AddAsync(message);
+        await Context.SaveChangesAsync();
+        IsBusy = false;
+
+        NavigationManager.NavigateTo($"/chat/{chat.Id}");
+    }
+
+}
