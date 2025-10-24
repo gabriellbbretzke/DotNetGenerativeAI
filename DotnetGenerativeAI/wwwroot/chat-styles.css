@@ -1,0 +1,248 @@
+/* ============================================= */
+/* ESTILOS GLOBAIS E TEMA               */
+/* ============================================= */
+
+/* Aplicamos o fundo escuro ao corpo principal da página de conteúdo */
+/* A classe .page é comum em layouts Blazor para a área de @Body */
+.page {
+    background-color: #202123; /* Um cinza-escuro padrão de apps de chat */
+    color: #ececf1; /* Cor de texto clara para legibilidade */
+}
+
+/* Remove o h1 padrão da página de chat, já que o contexto está na sidebar */
+.chat-page > h1 {
+    display: none;
+}
+
+/* ============================================= */
+/* ESTILOS PARA /chat (Novo Chat)        */
+/* ============================================= */
+
+/* Container principal da página de novo chat */
+.new-chat-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centraliza verticalmente */
+    align-items: center; /* Centraliza horizontalmente */
+    /* Ajuste 60px se sua barra superior tiver altura diferente */
+    height: calc(100vh - 60px);
+    padding: 2rem;
+    text-align: center;
+}
+
+    .new-chat-container p {
+        font-size: 1.75rem; /* Texto principal maior */
+        color: #e0e0e0;
+        margin-bottom: 2rem;
+        font-weight: 300;
+    }
+
+/* Grupo de input para um visual moderno */
+.new-chat-input-group {
+    display: flex;
+    width: 100%;
+    max-width: 700px; /* Limita a largura */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 28px; /* Bordas arredondadas */
+    overflow: hidden; /* Para manter as bordas do input/botão */
+    border: 1px solid #444;
+}
+
+.new-chat-container input[type="text"] {
+    flex-grow: 1; /* Ocupa o espaço disponível */
+    border: none;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    background-color: #343541; /* Fundo do input */
+    color: #ffffff;
+    border-radius: 28px 0 0 28px;
+}
+
+    .new-chat-container input[type="text"]:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .new-chat-container input[type="text"]::placeholder {
+        color: #8e8e8e;
+    }
+
+.new-chat-container button {
+    border: none;
+    padding: 1rem 1.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    /* Cor roxa similar ao seu botão "Iniciar" e sidebar */
+    background-color: #6a1b9a;
+    color: white;
+    cursor: pointer;
+    border-radius: 0 28px 28px 0;
+    transition: background-color 0.3s ease;
+}
+
+    .new-chat-container button:hover {
+        background-color: #8e24aa;
+    }
+
+    .new-chat-container button:disabled {
+        background-color: #555;
+        cursor: not-allowed;
+    }
+
+/* ============================================= */
+/* ESTILOS PARA /chat/{id} (Chat Ativo)    */
+/* ============================================= */
+
+.chat-page {
+    display: flex;
+    flex-direction: column;
+    /* Ajuste 60px se sua barra superior tiver altura diferente */
+    height: calc(100vh - 60px);
+    width: 100%;
+    background-color: #202123;
+}
+
+/* Container das mensagens (scrollável) */
+.chat-container {
+    flex-grow: 1; /* Ocupa todo o espaço, empurrando o input para baixo */
+    overflow-y: auto; /* Apenas esta área rola */
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Espaço entre as bolhas de chat */
+}
+
+/* Estilo base da bolha de chat */
+.chat-question,
+.chat-answer {
+    padding: 0.9rem 1.3rem;
+    border-radius: 22px; /* Mais arredondado */
+    max-width: 75%; /* Bolhas não ocupam a tela inteira */
+    line-height: 1.6;
+    word-wrap: break-word; /* Quebra palavras longas */
+}
+
+/* Bolha do Usuário (pergunta) */
+.chat-question {
+    background-color: #6a1b9a; /* Cor de destaque */
+    color: white;
+    border-radius: 22px 22px 4px 22px; /* Efeito de "cauda" */
+    align-self: flex-end; /* Alinha à direita */
+}
+
+/* Bolha da IA (resposta) */
+.chat-answer {
+    background-color: #343541; /* Cinza escuro, diferente do fundo */
+    color: #ececf1;
+    border-radius: 22px 22px 22px 4px; /* Efeito de "cauda" */
+    align-self: flex-start; /* Alinha à esquerda */
+}
+
+/* Bloco de sumário */
+.chat-summary-container {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+    .chat-summary-container p {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 0.5rem;
+    }
+
+.chat-summary {
+    font-style: italic;
+    color: #ccc;
+    background-color: transparent;
+    border: 1px dashed #555; /* Borda tracejada para diferenciar */
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    max-width: 90%;
+    display: inline-block;
+    text-align: left; /* Texto do sumário alinhado à esquerda */
+}
+
+
+/* Indicador de "Carregando" (loading) */
+.chat-answer.loading {
+    align-self: flex-start;
+    padding: 0.9rem 1.3rem;
+    display: flex;
+    gap: 5px;
+}
+
+    /* Animação de "digitando..." */
+    .chat-answer.loading::after {
+        content: '...';
+        font-weight: bold;
+        font-size: 1.5rem;
+        line-height: 1;
+        animation: pulse 1.5s infinite;
+    }
+
+@keyframes pulse {
+    0% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.3;
+    }
+}
+
+
+/* Área do prompt de input (fixa no fundo) */
+.chat-prompt {
+    display: flex;
+    padding: 1rem 1.5rem;
+    background-color: #202123; /* Mesmo fundo */
+    border-top: 1px solid #343541; /* Linha sutil de separação */
+    gap: 0.75rem; /* Espaço entre textarea e botão */
+    align-items: center;
+}
+
+    .chat-prompt textarea.form-control {
+        flex-grow: 1;
+        border-radius: 20px !important; /* Força o override do Bootstrap */
+        background-color: #343541;
+        color: white;
+        border: 1px solid #444;
+        padding: 0.75rem 1rem;
+        resize: none; /* Desabilita resize */
+        max-height: 150px; /* Limita altura */
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+        .chat-prompt textarea.form-control:focus {
+            background-color: #343541;
+            color: white;
+            /* Sombra de foco com a cor de destaque */
+            box-shadow: 0 0 0 0.2rem rgba(106, 27, 154, 0.3);
+            border-color: #6a1b9a;
+        }
+
+    .chat-prompt button.btn-primary {
+        background-color: #6a1b9a;
+        border-color: #6a1b9a;
+        border-radius: 12px; /* Botão com cantos arredondados */
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+    }
+
+        .chat-prompt button.btn-primary:hover {
+            background-color: #8e24aa;
+            border-color: #8e24aa;
+        }
+
+        .chat-prompt button.btn-primary:disabled {
+            background-color: #555;
+            border-color: #555;
+        }

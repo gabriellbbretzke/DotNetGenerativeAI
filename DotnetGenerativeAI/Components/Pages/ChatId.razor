@@ -16,11 +16,20 @@
 
 <div class="chat-page">
     <div class="chat-container">
-        @if (!string.IsNullOrEmpty(Summary))
+@*         @if (!string.IsNullOrEmpty(Summary))
         {
             <p>A conversa inicial é muito longa e foi resumida abaixo.</p>
             <div class="chat-answer">
                 @Summary
+            </div>
+        } *@
+        @if (!string.IsNullOrEmpty(Summary))
+        {
+            <div class="chat-summary-container">
+                <p>A conversa inicial é muito longa e foi resumida abaixo.</p>
+                <div class="chat-summary">
+                    @Summary
+                </div>
             </div>
         }
 
@@ -65,7 +74,7 @@
         History.AddSystemMessage(SystemPrompt.Default);
 
         if(!string.IsNullOrEmpty(this.Id))
-            _model = Context.Chats.FirstOrDefault(x => x.Id == new Guid(this.Id));
+            _model = await Context.Chats.FindAsync(new Guid(this.Id));
 
         if (_model is null)
         {
@@ -77,13 +86,21 @@
             return;
         }
 
-        var messages = Context
-            .Messages
-            .Take(10)
-            .Where(x => x.ChatId == _model.Id)
-            .OrderBy(x => x.CreatedAt)
-            .ToList();
-        _model.Messages = messages;
+        var messages = new List<ChatMessageModel>();
+        if (!_model.Messages.Any())
+        {
+            messages = Context
+                .Messages
+                .Where(x => x.ChatId == _model.Id)
+                .OrderBy(x => x.CreatedAt)
+                .Take(10)
+                .ToList();
+            _model.Messages = messages;
+        }
+        else
+        {
+            messages = _model.Messages.OrderBy(x => x.CreatedAt).ToList();
+        }
 
         //Sumariza
         if (messages.Count > 5)
@@ -92,6 +109,13 @@
             var summary = await ChatCompletionServiceFactory.GetChatMessageContentAsync(context);
             Summary = summary.Content ?? string.Empty;
             History.AddMessage(AuthorRole.Assistant, Summary);
+        }
+        else
+        {
+            messages.ForEach(msg =>
+            {
+                History.AddAssistantMessage(msg.Content);
+            });
         }
 
         IsBusy = false;

@@ -1,4 +1,4 @@
-﻿@page "/chat"
+﻿@page "/"
 @rendermode InteractiveServer
 @using DotnetGenerativeAI.Data
 @using DotnetGenerativeAI.Extensions
@@ -7,12 +7,28 @@
 @inject AppDbContext Context
 @inject NavigationManager NavigationManager
 
-<PageTitle>Home</PageTitle>
+@* <PageTitle>Home</PageTitle>
 
 <div class="container">
     <div>
         <p style="text-align: center">Como a IA pode te ajudar hoje?</p>
         <input type="text" @bind="Prompt" disabled="@IsBusy">
+        <button @onclick="OnNewChatAsync" disabled="@IsBusy">INICIAR</button>
+    </div>
+</div> *@
+
+<PageTitle>Home</PageTitle>
+
+<div class="new-chat-container">
+    <p>Como a IA pode te ajudar hoje?</p>
+
+    <div class="new-chat-input-group">
+        <input type="text"
+               @bind="Prompt"
+               disabled="@IsBusy"
+               placeholder="Digite sua primeira mensagem..."
+               @onkeyup="@(async (KeyboardEventArgs e) => { if (e.Key == "Enter") await OnNewChatAsync(); })">
+
         <button @onclick="OnNewChatAsync" disabled="@IsBusy">INICIAR</button>
     </div>
 </div>
@@ -43,7 +59,6 @@
         chat.Messages.Add(message);
 
         await Context.Chats.AddAsync(chat);
-        await Context.Messages.AddAsync(message);
         await Context.SaveChangesAsync();
         IsBusy = false;
 

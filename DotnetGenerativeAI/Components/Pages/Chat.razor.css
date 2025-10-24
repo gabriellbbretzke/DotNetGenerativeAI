@@ -1,4 +1,4 @@
-.container {
+/*.container {
     height: 100vh;
     display: flex;
     align-items: center;
@@ -31,3 +31,44 @@ textarea:disabled, button:disabled {
     cursor: default;
     opacity: 0.2;
 }
+
+*/
+
+/* ============================================= */
+/* ESTILOS GLOBAIS E TEMA               */
+/* ============================================= */
+
+/* Aplicamos o fundo escuro ao corpo principal da página de conteúdo */
+/* A classe .page é comum em layouts Blazor para a área de @Body */
+/*.page {
+    background-color: #202123;*/ /* Um cinza-escuro padrão de apps de chat */
+    /*color: #ececf1;*/ /* Cor de texto clara para legibilidade */
+/*}*/
+
+/* Remove o h1 padrão da página de chat, já que o contexto está na sidebar */
+/*.chat-page > h1 {
+    display: none;
+}*/
+
+/* ============================================= */
+/* ESTILOS PARA /chat (Novo Chat)        */
+/* ============================================= */
+
+/* Container principal da página de novo chat */
+/*.new-chat-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;*/ /* Centraliza verticalmente */
+    /*align-items: center;*/ /* Centraliza horizontalmente */
+    /* Ajuste 60px se sua barra superior tiver altura diferente */
+    /*height: calc(100vh - 60px);
+    padding: 2rem;
+    text-align: center;
+}
+
+    .new-chat-container p {
+        font-size: 1.75rem;*/ /* Texto principal maior */
+        /*color: #e0e0e0;
+        margin-bottom: 2rem;
+        font-weight: 300;
+    }*/
