@@ -73,33 +73,26 @@
         IsBusy = true;
         History.AddSystemMessage(SystemPrompt.Default);
 
-        if(!string.IsNullOrEmpty(this.Id))
-            _model = await Context.Chats.FindAsync(new Guid(this.Id));
-
+        _model = await Context.Chats.FindAsync(new Guid(this.Id));
+        
         if (_model is null)
-        {
-            var newId = Guid.NewGuid();
-            // this.Id = newId.ToString();
-            _model = new ChatModel { Id = newId, StartedAt = DateTime.UtcNow };
-            IsBusy = false;
-
             return;
-        }
 
         var messages = new List<ChatMessageModel>();
         if (!_model.Messages.Any())
         {
-            messages = Context
+            messages = await Context
                 .Messages
+                .AsNoTracking()
                 .Where(x => x.ChatId == _model.Id)
-                .OrderBy(x => x.CreatedAt)
+                .OrderByDescending(x => x.CreatedAt)
                 .Take(10)
-                .ToList();
+                .ToListAsync();
             _model.Messages = messages;
         }
         else
         {
-            messages = _model.Messages.OrderBy(x => x.CreatedAt).ToList();
+            messages = _model.Messages;
         }
 
         //Sumariza
